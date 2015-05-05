@@ -3,6 +3,7 @@
   (:require
     [reagent.core         :as    reagent]
     [cljs-time.core       :refer [now minus plus months days year month day day-of-week first-day-of-the-month before? after?]]
+    [cljs-time.coerce     :refer [to-date-time]]
     [cljs-time.local      :refer [local-now]]
     [re-com.validate      :refer [goog-date? css-style? html-attr?] :refer-macros [validate-args-macro]]
     [cljs-time.predicates :refer [sunday?]]
@@ -107,7 +108,7 @@
              {:style    {:font-size "24px"}
               :on-click (handler-fn (when prev-enabled? (reset! current prev-date)))}]]
 
-           [:th {:class "month" :col-span "5"} (month-label @current)]
+           [:th {:class "month" :col-span "5"} (month-label (to-date-time @current))]
 
            #_[:th {:class (str "next " (if next-enabled? "available selectable" "disabled"))} ;; TODO: Remove
             [:i {:class    "glyphicon glyphicon-chevron-right"
@@ -248,7 +249,7 @@
     :align :center
     :class "noselect"
     :children [[:label {:class "form-control dropdown-button"}
-                (unparse (if (seq format) (formatter format) date-format) @model)]
+                (unparse (if (seq format) (formatter format) date-format) (to-date-time @model))]
                #_[:span  {:class "dropdown-button activator input-group-addon"} ;; TODO: Remove
                 [:i {:class "glyphicon glyphicon-th"}]]
                [:span.dropdown-button.activator.input-group-addon
