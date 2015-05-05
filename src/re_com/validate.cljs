@@ -286,7 +286,7 @@
   "Returns true if the passed argument is a valid goog.date.DateTime, otherwise false/error"
   [arg]
   (let [arg (deref-or-value arg)]
-    (instance? goog.date.DateTime arg)))
+    (instance? goog.date.Date arg)))
 
 (defn regex?
   "Returns true if the passed argument is a valid regular expression, otherwise false/error"

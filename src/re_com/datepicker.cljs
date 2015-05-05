@@ -202,8 +202,8 @@
                        :today (local-now)})))
 
 (def datepicker-args-desc
-  [{:name :model        :required true                        :type "goog.date.DateTime | atom"   :validate-fn goog-date? :description "the selected date. Should match :enabled-days"}
-   {:name :on-change    :required true                        :type "(goog.date.DateTime) -> nil" :validate-fn fn?        :description "called when a new selection is made"}
+  [{:name :model        :required true                        :type "goog.date.Date | atom"   :validate-fn goog-date? :description "the selected date. Should match :enabled-days"}
+   {:name :on-change    :required true                        :type "(goog.date.Date) -> nil" :validate-fn fn?        :description "called when a new selection is made"}
    {:name :disabled?    :required false :default false        :type "boolean | atom"                                         :description "when true, the can't select dates but can navigate"}
    {:name :enabled-days :required false                       :type "set"                            :validate-fn set?       :description "a subset of #{:Su :Mo :Tu :We :Th :Fr :Sa}. Only dates falling on these days will be user-selectable. Default is all 7 days"}
    {:name :show-weeks?  :required false :default false        :type "boolean"                                                :description "when true, week numbers are shown to the left"}
