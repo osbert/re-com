@@ -49,6 +49,7 @@
 (def single-dropdown            dropdown/single-dropdown)
 
 (def input-time                 input-time/input-time)
+(def input-time-12h             input-time/input-time-12h)
 
 (def h-split                    splits/h-split)
 (def v-split                    splits/v-split)

@@ -4,7 +4,8 @@
             [re-com.validate :refer [css-style? html-attr? number-or-string?] :refer-macros [validate-args-macro]]
             [re-com.text     :refer [label]]
             [re-com.box      :refer [h-box gap]]
-            [re-com.util     :refer [pad-zero-number deref-or-value]]))
+            [re-com.util     :refer [pad-zero-number deref-or-value]]
+            [clojure.string :as s]))
 
 
 (defn- time->mins
@@ -54,7 +55,6 @@
        extract-triple-from-text
        (map to-int)                                         ;; make them ints (or 0)
        triple->time))                                       ;; turn the triple of values into a single int
-
 
 (defn- time->text
   "return a string of format HH:MM for 'time'"
@@ -184,6 +184,108 @@
                       #_[:div.time-icon ;; TODO: Remove
                        [:span.glyphicon.glyphicon-time
                         {:style {:position "static" :margin "auto"}}]]
+                      [:div.time-icon
+                       [:i.md-access-time
+                        {:style {:position "static" :margin "auto"}}]])]]))))
+
+(defn split-time-model [time]
+  {:hour (let [h (rem (int (/ (int time) 100)) 12)]
+           (if (= h 0)
+             12
+             h))
+   :minute (rem time 100)
+   :am-pm (if (< (int (/ (int time) 100)) 12)
+            "AM"
+            "PM")})
+
+(defn unsplit-time-model [{:keys [hour minute am-pm] :as split-model}]
+  (let [h (* (cond
+               (and (= am-pm "PM") (not= hour 12)) (+ hour 12)
+               (and (= am-pm "AM") (= hour 12)) (- hour 12)
+               :else hour)
+             100)]
+    (+ h minute)))
+
+(defn time->text-12h
+  [time]
+  (let [{:keys [hour minute am-pm]} (split-time-model time)
+        hrs  hour
+        mins minute]
+    (str hrs ":" (pad-zero-number mins 2) am-pm)))
+
+(defn text-12h->time
+  "return as a time int, the contents of 'text'"
+  [text]
+  (let [hm (s/split text #":|AM|PM")
+        am (re-find #"AM$" text)
+        [h m] (map int hm)]
+    (unsplit-time-model {:hour h :minute m :am-pm (if am am "PM")})))
+
+(defn- on-defocus-12h
+  "Called when the field looses focus.
+   Re-validate what has been entered, comparing to mins and maxs.
+   Invoke the callback as necessary"
+  [text-model min max callback previous-val]
+  (let [time (text-12h->time @text-model)
+        time (force-valid-time time min max previous-val)]
+    (reset! text-model (time->text-12h time))
+    (when (and callback (not= time previous-val))
+      (callback time))))
+
+(defn- on-new-keypress-12h
+  "Called each time the <input> field gets a keypress, or paste operation.
+   Rests  the text-model only if the new text is valid"
+  [event text-model]
+  (let [current-text (-> event .-target .-value)]           ;; gets the current input field text
+    (.log js/console "HELLO")
+    (reset! text-model current-text)))
+
+(defn input-time-12h
+  "I return the markup for an input box which will accept and validate times.
+   Parameters - refer input-time-args above"
+  [& {:keys [model minimum maximum on-change class style attr] :as args
+      :or   {minimum 0 maximum 2359}}]
+  {:pre [(validate-args-macro input-time-args-desc args "input-time")
+         (validate-arg-times (deref-or-value model) minimum maximum)]}
+  (let [deref-model    (deref-or-value model)
+        text-model     (reagent/atom (time->text-12h deref-model))
+        previous-model (reagent/atom deref-model)]
+    (fn
+      [& {:keys [model minimum maximum width height disabled? hide-border? show-icon?] :as args
+          :or   {minimum 0 maximum 2359}}]
+      {:pre [(validate-args-macro input-time-args-desc args "input-time")
+             (validate-arg-times (deref-or-value model) minimum maximum)]}
+      (let [style (merge (when hide-border? {:border "none"})
+                         style)
+            new-val (deref-or-value model)
+            new-val (if (< new-val minimum) minimum new-val)
+            new-val (if (> new-val maximum) maximum new-val)]
+        ;; if the model is different to that currently shown in text, then reset the text to match
+        ;; other than that we want to keep the current text, because the user is probably typing
+        (when (not= @previous-model new-val)
+          (reset! text-model (time->text-12h new-val))
+          (reset! previous-model new-val))
+
+        [h-box
+         :class    "rc-input-time"
+         :style    (merge {:height height}
+                          style)
+         :children [[:input
+                     (merge
+                      {:type      "text"
+                       :class     (str "time-entry " class)
+                       :style     (merge {:width width}
+                                         style)
+                       :value     @text-model
+                       :disabled  (deref-or-value disabled?)
+                       :on-change (handler-fn (on-new-keypress-12h event text-model))
+                       :on-blur   (handler-fn (on-defocus-12h text-model minimum maximum on-change @previous-model))
+                       :on-key-up (handler-fn (lose-focus-if-enter event))}
+                      attr)]
+                    (when show-icon?
+                      #_[:div.time-icon ;; TODO: Remove
+                         [:span.glyphicon.glyphicon-time
+                          {:style {:position "static" :margin "auto"}}]]
                       [:div.time-icon
                        [:i.md-access-time
                         {:style {:position "static" :margin "auto"}}]])]]))))
