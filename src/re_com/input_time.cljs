@@ -237,7 +237,6 @@
    Rests  the text-model only if the new text is valid"
   [event text-model]
   (let [current-text (-> event .-target .-value)]           ;; gets the current input field text
-    (.log js/console "HELLO")
     (reset! text-model current-text)))
 
 (defn input-time-12h
