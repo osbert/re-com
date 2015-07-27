@@ -216,8 +216,8 @@
 (defn text-12h->time
   "return as a time int, the contents of 'text'"
   [text]
-  (let [hm (s/split text #":|((?i)AM)|((?i)PM)")
-        am (re-find #"((?i)AM)$" text)
+  (let [hm (s/split text #"(?i):|AM|PM")
+        am (re-find #"(?i)AM$" text)
         [h m] (map int hm)]
     (unsplit-time-model {:hour h :minute m :am-pm (if am am "PM")})))
 
