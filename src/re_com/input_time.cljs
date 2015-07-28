@@ -263,7 +263,8 @@
         ;; other than that we want to keep the current text, because the user is probably typing
         (when (not= @previous-model new-val)
           (reset! text-model (time->text-12h new-val))
-          (reset! previous-model new-val))
+          (reset! previous-model new-val)
+          (reset! model new-val))
 
         [h-box
          :class    "rc-input-time"
