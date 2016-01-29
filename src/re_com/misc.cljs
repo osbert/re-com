@@ -16,6 +16,7 @@
 (def input-text-args-desc
   [{:name :model            :required true                   :type "string | atom"    :validate-fn string-or-atom?    :description "text of the input (can be atom or value)"}
    {:name :on-change        :required true                   :type "string -> nil"    :validate-fn fn?                :description [:span [:code ":change-on-blur?"] " controls when it is called. Passed the current input string"] }
+   {:name :on-enter         :required false                  :type "string -> nil"    :validate-fn fn?                :description [:span "Called when enter is pressed. Passed the current input string"]}
    {:name :status           :required false                  :type "keyword"          :validate-fn input-status-type? :description [:span "validation status. " [:code "nil/omitted"] " for normal status or one of: " input-status-types-list]}
    {:name :status-icon?     :required false :default false   :type "boolean"                                          :description [:span "when true, display an icon to match " [:code ":status"] " (no icon for nil)"]}
    {:name :status-tooltip   :required false                  :type "string"           :validate-fn string?            :description "displayed in status icon's tooltip"}
@@ -43,10 +44,10 @@
   "Returns markup for a basic text input label"
   [& {:keys [model input-type] :as args}]
   {:pre [(validate-args-macro input-text-args-desc args "input-text")]}
-  (let [external-model (reagent/atom (deref-or-value model))  ;; Holds the last known external value of model, to detect external model changes
+  (let [external-model (reagent/atom (deref-or-value model)) ;; Holds the last known external value of model, to detect external model changes
         internal-model (reagent/atom (if (nil? @external-model) "" @external-model))] ;; Create a new atom from the model to be used internally (avoid nil)
     (fn
-      [& {:keys [model status status-icon? status-tooltip placeholder width height rows on-change change-on-blur? validation-regex validation-fn disabled? class style attr]
+      [& {:keys [model status status-icon? status-tooltip placeholder width height rows on-change on-enter change-on-blur? validation-regex validation-fn disabled? class style attr]
           :or   {change-on-blur? true}
           :as   args}]
       {:pre [(validate-args-macro input-text-args-desc args "input-text")]}
@@ -62,7 +63,7 @@
          :width    (if width width "250px")
          :class    "rc-input-text "
          :children [[:div
-                     {:class (str "rc-input-text-inner "          ;; form-group
+                     {:class (str "rc-input-text-inner " ;; form-group
                                   (case status
                                     :warning "has-warning "
                                     :error "has-error "
@@ -71,50 +72,54 @@
                       :style (flex-child-style "auto")}
                      [input-type
                       (merge
-                        {:class       (str "form-control " class)
-                         :type        (when (= input-type :input) "text")
-                         :rows        (when (= input-type :textarea) (if rows rows 3))
-                         :style       (merge
-                                        (flex-child-style "none")
-                                        {:height        height
-                                         :padding-right "12px"} ;; override for when icon exists
-                                        style)
-                         :placeholder placeholder
-                         :value       @internal-model
-                         :disabled    disabled?
-                         :on-change   (handler-fn
-                                        (let [new-val (-> event .-target .-value)]
-                                          (when (and
-                                                  on-change
-                                                  (not disabled?)
-                                                  (if validation-regex (re-find validation-regex new-val) true)
-                                                  (if validation-fn (validation-fn new-val) true))
-                                            (reset! internal-model new-val)
-                                            (when-not change-on-blur?
-                                              (on-change @internal-model)))))
-                         :on-blur     (handler-fn
+                       {:class       (str "form-control " class)
+                        :type        (when (= input-type :input) "text")
+                        :rows        (when (= input-type :textarea) (if rows rows 3))
+                        :style       (merge
+                                      (flex-child-style "none")
+                                      {:height        height
+                                       :padding-right "12px"} ;; override for when icon exists
+                                      style)
+                        :placeholder placeholder
+                        :value       @internal-model
+                        :disabled    disabled?
+                        :on-change   (handler-fn
+                                      (let [new-val (-> event .-target .-value)]
                                         (when (and
-                                                on-change
-                                                change-on-blur?
-                                                (not= @internal-model @external-model))
-                                          (on-change @internal-model)))
-                         :on-key-up   (handler-fn
-                                        (if disabled?
-                                          (.preventDefault event)
-                                          (case (.-which event)
-                                            13 (when on-change (on-change @internal-model))
-                                            27 (reset! internal-model @external-model)
-                                            true)))
+                                               on-change
+                                               (not disabled?)
+                                               (if validation-regex (re-find validation-regex new-val) true)
+                                               (if validation-fn (validation-fn new-val) true))
+                                          (reset! internal-model new-val)
+                                          (when-not change-on-blur?
+                                            (on-change @internal-model)))))
+                        :on-blur     (handler-fn
+                                      (when (and
+                                             on-change
+                                             change-on-blur?
+                                             (not= @internal-model @external-model))
+                                        (on-change @internal-model)))
+                        :on-key-up   (handler-fn
+                                      (if disabled?
+                                        (.preventDefault event)
+                                        (case (.-which event)
+                                          13 (do
+                                               (when on-change
+                                                 (on-change @internal-model))
+                                               (when on-enter
+                                                 (on-enter @internal-model)))
+                                          27 (reset! internal-model @external-model)
+                                          true)))
 
-                         }
-                        attr)]]
+                        }
+                       attr)]]
                     (when (and status-icon? status)
                       (if status-tooltip
                         [popover-tooltip
                          :label status-tooltip
                          :position :right-center
                          :status status
-                         ;:width    "200px"
+                         ;;:width    "200px"
                          :showing? showing?
                          :anchor [:i {:class         (str (if (= status :warning) "md-warning" "md-error") " form-control-feedback")
                                       :style         {:position "static"
