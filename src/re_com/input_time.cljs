@@ -149,7 +149,8 @@
         text-model     (reagent/atom (time->text deref-model))
         previous-model (reagent/atom deref-model)]
     (fn
-      [& {:keys [model minimum maximum width height disabled? hide-border? show-icon?] :as args
+      [& {:keys [model minimum maximum width height disabled? hide-border? show-icon?
+                 class style] :as args
           :or   {minimum 0 maximum 2359}}]
       {:pre [(validate-args-macro input-time-args-desc args "input-time")
              (validate-arg-times (deref-or-value model) minimum maximum)]}
@@ -250,7 +251,8 @@
         text-model     (reagent/atom (time->text-12h deref-model))
         previous-model (reagent/atom deref-model)]
     (fn
-      [& {:keys [model minimum maximum width height disabled? hide-border? show-icon?] :as args
+      [& {:keys [model minimum maximum width height disabled? hide-border? show-icon?
+                 class style] :as args
           :or   {minimum 0 maximum 2359}}]
       {:pre [(validate-args-macro input-time-args-desc args "input-time")
              (validate-arg-times (deref-or-value model) minimum maximum)]}
