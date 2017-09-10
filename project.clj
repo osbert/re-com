@@ -32,7 +32,7 @@
 
 ;; ---------------------------------------------------------------------------------------
 
-(defproject         re-com "0.5.4"
+(defproject         org.clojars.osbert/re-com "0.5.17"
   :description      "Reusable UI components for Reagent"
   :url              "https://github.com/Day8/re-com.git"
   :license          {:name "MIT"}
