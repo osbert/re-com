@@ -220,7 +220,13 @@
   (let [hm (s/split text #"(?i):|AM|PM")
         am (re-find #"(?i)AM$" text)
         [h m] (map int hm)]
-    (unsplit-time-model {:hour h :minute m :am-pm (if am am "PM")})))
+    (unsplit-time-model {:hour h
+                         :minute m
+                         :am-pm (cond
+                                  (re-find #"(?i)AM$" text) "AM"
+                                  (re-find #"(?i)PM$" text) "PM"
+                                  (and (>= h 7) (<= h 11)) "AM"
+                                  :else "PM")})))
 
 (defn- on-defocus-12h
   "Called when the field looses focus.
