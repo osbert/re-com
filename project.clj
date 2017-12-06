@@ -32,7 +32,7 @@
 
 ;; ---------------------------------------------------------------------------------------
 
-(defproject         org.clojars.osbert/re-com "0.5.19"
+(defproject         org.clojars.osbert/re-com "0.5.20"
   :description      "Reusable UI components for Reagent"
   :url              "https://github.com/Day8/re-com.git"
   :license          {:name "MIT"}
@@ -43,6 +43,7 @@
                      [com.andrewmcveigh/cljs-time "0.3.2"]
                      [secretary                   "1.2.3"]]
 
+  :plugins [[s3-wagon-private "1.2.0" :exclusions [commons-codec]]]
   ;:plugins          [[lein-unpack-resources "0.1.1"]]
   ;
   ;:unpack-resources {:resource     [re-com "0.1.6"]
@@ -156,4 +157,8 @@
                      "debug-test" ["with-profile" "+dev-test" "do"
                                    ["run-test"]
                                    ["cljsbuild" "auto" "test"]]}
+
+  :repositories [["private" {:url "s3p://jars.swingeducation.com/releases"
+                              :username [:gpg :env/swing_repo_username]
+                              :passphrase [:gpg :env/swing_repo_password]}]]
   )
