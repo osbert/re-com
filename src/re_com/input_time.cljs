@@ -217,7 +217,7 @@
 (defn text-12h->time
   "return as a time int, the contents of 'text'"
   [text]
-  (when (re-find #"(?i)^ *[0-9]+(:[0-9]+)?(AM|PM)? *$" text)
+  (when (re-find #"(?i)^ *[0-9]+(:[0-9]+)?\s*(AM|PM)?\s*$" text)
     (let [hm (s/split text #"(?i):|AM|PM")
           am (re-find #"(?i)AM$" text)
           [h m] (map int hm)]
